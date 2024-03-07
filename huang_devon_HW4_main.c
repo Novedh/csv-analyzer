@@ -1,11 +1,11 @@
 /**************************************************************
 * Class::  CSC-415-0# Spring 2024
-* Name::
-* Student ID::
-* GitHub-Name::
+* Name::Devon Huang
+* Student ID::916940666
+* GitHub-Name::Novedh
 * Project:: Assignment 4 – Processing CSV Data with Threads
 *
-* File:: <name of this file>
+* File:: huang_devon_HW4_main.c
 *
 * Description::
 *

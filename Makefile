@@ -33,8 +33,8 @@
 # will delete the executable and any object files in your directory.
 #
 
-FIRSTNAME=
-LASTNAME=
+FIRSTNAME=devon
+LASTNAME=huang
 
 ROOTNAME=$(LASTNAME)_$(FIRSTNAME)_HW
 HW=4
@@ -46,7 +46,7 @@ RUNOPTIONS=Law100K.csv 1 police_district BAYVIEW MISSION TENDERLOIN
 CC=gcc
 CFLAGS= -g -I.
 # To add libraries, add "-l <libname>", for multiple repeat prior for each lib.
-LIBS =
+LIBS =-l pthread
 DEPS = 
 ARCH = $(shell uname -m)
 
