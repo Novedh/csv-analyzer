@@ -10,6 +10,9 @@
 * Description::
 *
 **************************************************************/
+// issues was allocating cvsnext not dynamacally
+// issues was double quotes
+// imbedded \n
 
 #include <stdio.h> 
 #include <stdlib.h> 
@@ -28,25 +31,28 @@ char ** csvopen (char * filename){
         return NULL; // return NULL on failure
     }
 
-    // Read the header
+    // Read the header 
     char buffer[BUFFERSIZE]; 
     if (fgets(buffer, sizeof(buffer), file) == NULL) {
         fclose(file);
         return NULL;
     }
 
-    colms = 1;
-
-    //replaces double quotes with @, ill change it to a single quote after
+    // Replaces double quotes with @ as a place holder, I'll change it
+    // to a single quote during parsing
     for (int i = 0; buffer[i] != '\0'; i++) {
         if (buffer[i] == '"' && buffer[i + 1] == '"') {
             buffer[i] = '@';
-            memmove(&buffer[i + 1], &buffer[i + 2], strlen(&buffer[i + 2]) + 1); // Remove the second quote
+            // Remove the second quote
+            memmove(&buffer[i + 1], &buffer[i + 2], strlen(&buffer[i + 2]) + 1); 
         }
     }
-    
+
+    colms = 1;
+    // this counts the colms in header by counting commas and ignoring the commas that are 
+    // imbedded in double quotes
+
     for (int i = 0; buffer[i] != '\0'; i++) {
-        // treat string inside of "'s as one, so ignores ,'s
         if (buffer[i] == '"' ) {
             i++;
             while(buffer[i]!='"'){
@@ -59,7 +65,6 @@ char ** csvopen (char * filename){
 
     }
 
-
     // Allocate memory for header
     header = (char **)malloc(colms * sizeof(char *));
     if (header == NULL) {
@@ -67,7 +72,9 @@ char ** csvopen (char * filename){
         return NULL;
     }
 
-    // Parse header line
+    // Parse header line by using two pointers, the end pointer will imcrement until
+    // it reaches one of the conditions then if it reaches the end of the read or
+    // a comma it will add it to our header vector
     int header_index = 0;
     char *start = buffer;
     char *end = buffer;
@@ -76,6 +83,7 @@ char ** csvopen (char * filename){
             start++;
             end++; // Skip the starting quote
             while (*end != '"' && *end != '\0') {
+                // reverting double quotes to single
                 if(*end == '@'){
                     *end = '"';
                 }
@@ -87,17 +95,35 @@ char ** csvopen (char * filename){
             }
         }
         if (*end == ',' || *end == '\0') {
-            *end = '\0'; // Null-terminate the current field
-            header[header_index] = start; // Assign the current field to the header array
+            *end = '\0'; // Null-terminate the current column
+            header[header_index] = (char *)malloc((end - start + 1) * sizeof(char));
+            if (header[header_index] == NULL) {
+                for (int j = 0; j < header_index; j++) {
+                    free(header[j]);
+                }
+                free(header);
+                return NULL; // return NULL on failure
+            }
+            strcpy(header[header_index], start); // Assign the current column to the header array
             header_index++;
             start = end + 1; // Move start pointer to the next character after the comma or '\0'
         }
 
         end++;
     }
-
-    header[header_index++] = start;
-    header[header_index] = NULL; // Null-terminate the header array
+    // This is allocating and assigning the last column to the header array
+    // because it was skipped
+    header[header_index] = (char *)malloc((end - start + 1) * sizeof(char));
+    if (header[header_index] == NULL) {
+        for (int j = 0; j < header_index; j++) {
+            free(header[j]);
+        }
+        free(header);
+        return NULL; // return NULL on failure
+    }
+    strcpy(header[header_index], start); 
+    header_index++;
+    header[header_index] = '\0'; // Null-terminate the header array
     return header;
 }
 
@@ -108,21 +134,52 @@ char ** csvnext (){
     }
 
     // Read the next line from the file
-    char buffer[BUFFERSIZE]; // assuming a maximum line size of BUFFERSIZE characters
+    char buffer[BUFFERSIZE]; 
     if (fgets(buffer, sizeof(buffer), file) == NULL) {
         return NULL; // return NULL if end of file is reached
     }
+    
+    // this counts how many double quotes are in the buffer, if it is a odd number
+    // then that means a double quote hasnt been closed and it will read the next line
+    // from the csv file in to tempBuffer and add it onto our buffer until every double quote 
+    // has been close with another double quote
+    int doubQuoteCount = 0;
+    for(int i =0; i<strlen(buffer) ; i++){
+        if(buffer[i] == '"'){
+            doubQuoteCount++;
+        }
+    }
+    while((doubQuoteCount%2) != 0){
+        char tempBuffer[BUFFERSIZE];
+        if (fgets(tempBuffer, sizeof(buffer), file) == NULL) {
+            return NULL; // return NULL if end of file is reached
+        }
+        for(int i =0; i<strlen(tempBuffer) ; i++){
+            if(tempBuffer[i] == '"'){
+                doubQuoteCount++;
+            }
+        }
+        int lenBuffer = strlen(buffer);
+        int lenTempBuffer = strlen(tempBuffer);
+        for(int i = 0; i < lenTempBuffer;i++){
+            buffer[lenBuffer + i] = tempBuffer[i];
+        }
+        buffer[lenBuffer+lenTempBuffer] = '\0';
+        
+    }
 
     // Allocate memory for the row data
-    char **row = (char **)malloc(colms * sizeof(char *));
+    char **row = (char **)malloc((colms) * sizeof(char *));
     if (row == NULL) {
         return NULL; // return NULL on failure
     }
 
+    // same as in the header replaces two double quotes with @ as a temp place holder
+    // to be replace with a single " in parsing
     for (int i = 0; buffer[i] != '\0'; i++) {
         if (buffer[i] == '"' && buffer[i + 1] == '"') {
             buffer[i] = '@';
-            memmove(&buffer[i + 1], &buffer[i + 2], strlen(&buffer[i + 2]) + 1); // Remove the second quote
+            memmove(&buffer[i + 1], &buffer[i + 2], strlen(&buffer[i + 2]) + 1); 
         }
     }
 
@@ -135,47 +192,70 @@ char ** csvnext (){
             start++;
             end++; // Skip the starting quote
             while (*end != '"' && *end != '\0') {
+                // replace @ place holder with single quote
                 if(*end == '@'){
                     *end = '"';
                 }
                 end++; // Skip until the ending quote
             }
             if (*end == '"') {
-                end++; // Skip the ending quote
+                end++; // Skip the ending quote 
                 end[-1]='\0';
             }
         }
         if (*end == ',' || *end == '\0') {
-            *end = '\0'; // Null-terminate the current field
-
-            row[row_index] = start; // Assign the current field to the row array
+            *end = '\0'; // Null-terminate the current column
+            row[row_index] = (char *)malloc((end - start + 1) * sizeof(char));
+            if (row[row_index] == NULL) {
+                for (int j = 0; j < row_index; j++) {
+                    free(row[j]);
+                }
+                free(row);
+                return NULL; // return NULL on failure
+            }
+            strcpy(row[row_index], start); // Assign the current column to the row array
             row_index++;
+            
             start = end + 1; // Move start pointer to the next character after the comma or '\0'
         }
-
+        
         end++;
     
     }
-        
-    row[row_index] = start;
-    row_index++;
-    row[row_index] = NULL; // Null-terminate the row array
+    
+    // allocating the last column and assigning it to row
+    row[row_index] = (char *)malloc((end - start + 1) * sizeof(char));
+    if (row[row_index] == NULL) {
+        for (int j = 0; j < row_index; j++) {
+            free(row[j]);
+        }
+        free(row);
+        return NULL; // return NULL on failure
+    }
 
+    strcpy(row[row_index], start); 
+    row_index++;
+    row[row_index] = '\0'; // Null-terminate the row array
+    // keeping track of how many lines are read for our csvclose to return
+    lineNum++;
     return row;    
 }
 
 char ** csvheader (){
     return header;
-
 }
 
 int csvclose (){
-    for (int i = 0; i < colms; i++) {
-        free(header[i]);
+    if (file != NULL) {
+        if(fclose(file) != 0){
+            return -1;
+        }
     }
+    
+    for (int i = 0; i < colms; i++) {
+            free(header[i]);
+    }
+
     free(header);
-    fclose(file);
-
-
     return lineNum;
 }
