@@ -12,9 +12,13 @@
  * then one that loaded in the next line in the csv.
  *
  **************************************************************/
-// issues was allocating cvsnext not dynamacally
-// issues was double quotes
-// imbedded \n
+// ~issues was allocating cvsnext not dynamacally
+// ~issues was double quotes
+// ~imbedded \n - keep runing fgets and appending the buffer with 
+// the new one until "'s were even meaning they clsoed
+// ~issue running the full size - store last row of csvnext in a global and free
+// it the next time it ran
+//
 
 #include <stdio.h> 
 #include <stdlib.h> 
@@ -26,6 +30,7 @@ FILE *file;
 int lineNum = 0;
 char **header;
 int colms;
+char **prev_row = NULL;
 
 char ** csvopen (char * filename){
     file = fopen(filename, "r");
@@ -169,6 +174,14 @@ char ** csvnext (){
         buffer[lenBuffer+lenTempBuffer] = '\0';
         
     }
+    if (prev_row != NULL)
+    {
+        for (int i = 0; i < colms; i++)
+        {
+            free(prev_row[i]);
+        }
+        free(prev_row);
+    }
 
     // Allocate memory for the row data
     char **row = (char **)malloc((colms) * sizeof(char *));
@@ -240,6 +253,7 @@ char ** csvnext (){
     row[row_index] = '\0'; // Null-terminate the row array
     // keeping track of how many lines are read for our csvclose to return
     lineNum++;
+    prev_row = row;
     return row;    
 }
 
