@@ -1,15 +1,17 @@
 /**************************************************************
-* Class::  CSC-415-0# Spring 2024
-* Name::Devon Huang
-* Student ID::916940666
-* GitHub-Name::Novedh
-* Project:: Assignment 4 – Processing CSV Data with Threads
-*
-* File:: huang_devon_HW4_main.c
-*
-* Description::
-*
-**************************************************************/
+ * Class::  CSC-415-0# Spring 2024
+ * Name::Devon Huang
+ * Student ID::916940666
+ * GitHub-Name::Novedh
+ * Project:: Assignment 4 – Processing CSV Data with Threads
+ *
+ * File:: huang_devon_HW4_csv.c
+ *
+ * Description:: This program is for parsing the csv file into
+ * arrays of strings. One for the header, the first line of the csv
+ * then one that loaded in the next line in the csv.
+ *
+ **************************************************************/
 // issues was allocating cvsnext not dynamacally
 // issues was double quotes
 // imbedded \n

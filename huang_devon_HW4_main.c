@@ -21,6 +21,11 @@
 #include <pthread.h>
 #include "huang_devon_HW4_func.c"
 
+pthread_mutex_t mutex;
+
+void *routine(){
+
+}
 
 
 int main (int argc, char *argv[])
