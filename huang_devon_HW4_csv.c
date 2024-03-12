@@ -16,8 +16,8 @@
 
 #include <stdio.h> 
 #include <stdlib.h> 
-#include <string.h> 
-#include "assignment4.h"
+#include <string.h>
+#include <assignment4.h>
 
 
 FILE *file;
@@ -222,7 +222,7 @@ char ** csvnext (){
         end++;
     
     }
-    
+
     // allocating the last column and assigning it to row
     row[row_index] = (char *)malloc((end - start + 1) * sizeof(char));
     if (row[row_index] == NULL) {

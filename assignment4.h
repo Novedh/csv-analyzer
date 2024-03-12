@@ -11,6 +11,11 @@
 *
 **************************************************************/
 #define BUFFERSIZE 1024
+#define SECONDS_MIN 60
+#define SECONDS_DAY 86400
+#define SECONDS_HOUR 3600
+#define SECONDS_MONTH 2628000
+#define SECONDS_YEAR 31536000
 
 // for the times ill use an array of ints where each index will keep track of 
 // the time it takes 
@@ -23,104 +28,29 @@ typedef struct EventData{
     int totalCalls;
     int dispatchTimes[4];
     int onSceneTimes[4];
+    int subVal1DisTime[4];
+    int SubVal1OnTime[4];
+    int subVal2DisTime[4];
+    int SubVal2OnTime[4];
+    int subVal3DisTime[4];
+    int SubVal3OnTime[4];
     struct EventData *next;
 }EventData;
 
-EventData* createNode(char *callType, int totalCalls, int dispatchTimes[], int onSceneTimes[]) {
-    EventData* newNode = (EventData*)malloc(sizeof(EventData));
-    if (newNode == NULL) {
-        printf("Memory allocation failed\n");
-        exit(1);
-    }
-    newNode->callType = (char*)malloc(strlen(callType) + 1);
-    if (newNode->callType == NULL) {
-        printf("Memory allocation failed\n");
-        exit(1);
-    }
-    strcpy(newNode->callType, callType);
-    newNode->totalCalls = totalCalls;
-    memcpy(newNode->dispatchTimes, dispatchTimes, sizeof(int) * 4);
-    memcpy(newNode->onSceneTimes, onSceneTimes, sizeof(int) * 4);
-    newNode->next = NULL;
-    return newNode;
-}
+EventData* createNode(char *callType);
 
-void insertNode(EventData **head, EventData *newNode) {
-    if (*head == NULL) {
-        *head = newNode;
-    } else {
-        EventData *temp = *head;
-        while (temp->next != NULL) {
-            temp = temp->next;
-        }
-        temp->next = newNode;
-    }
-}
-int nodeCount(EventData *head){
-    int count =1;
-    while(head->next != NULL){
-        count++;
-        head = head->next;
-    }
-    return count;
-}
+void insertNode(EventData **head, EventData *newNode) ;
 
-void swapNode(EventData *a, EventData *b) {
-    char *tempCallType = a->callType;
-    int tempTotalCalls = a->totalCalls;
-    int tempDispatchTimes[4];
-    int tempOnSceneTimes[4];
-    memcpy(tempDispatchTimes, a->dispatchTimes, sizeof(int) * 4);
-    memcpy(tempOnSceneTimes, a->onSceneTimes, sizeof(int) * 4);
+int nodeCount(EventData *head);
 
-    a->callType = b->callType;
-    a->totalCalls = b->totalCalls;
-    memcpy(a->dispatchTimes, b->dispatchTimes, sizeof(int) * 4);
-    memcpy(a->onSceneTimes, b->onSceneTimes, sizeof(int) * 4);
+void swapNode(EventData *a, EventData *b) ;
 
-    b->callType = tempCallType;
-    b->totalCalls = tempTotalCalls;
-    memcpy(b->dispatchTimes, tempDispatchTimes, sizeof(int) * 4);
-    memcpy(b->onSceneTimes, tempOnSceneTimes, sizeof(int) * 4);
-}
+void sortNodes(EventData *head) ;
 
-void sortNodes(EventData *head) {
-    if (head == NULL || head->next == NULL)
-        return;
+void freeList(EventData *head) ;
 
-    int swapped;
-    EventData *ptr1;
-    EventData *lastptr = NULL;
+int timeDifference(const char* time1, const char* time2);
 
-    while (1) {
-        swapped = 0;
-        ptr1 = head;
-
-        while (ptr1->next != lastptr) {
-            if (strcmp(ptr1->callType, ptr1->next->callType) > 0) {
-                swapNode(ptr1, ptr1->next);
-                swapped = 1;
-            }
-            ptr1 = ptr1->next;
-        }
-        
-        if (!swapped){
-            break;
-        }
-
-        lastptr = ptr1;
-    }
-}
-
-void freeList(EventData *head) {
-    EventData *temp;
-    while (head != NULL) {
-        temp = head;
-        head = head->next;
-        free(temp->callType);
-        free(temp);
-    }
-}
 
 char ** csvopen (char * filename);
 
