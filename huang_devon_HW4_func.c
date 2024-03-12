@@ -30,15 +30,15 @@
 // 2's will keep track of 6 to 10 minute
 // 3's will keep track of over 10 minutes
 
+// creates a empty node with just the calltype data
+// since our program will populate it
 EventData* createNode(char *callType) {
     EventData* newNode = (EventData*)malloc(sizeof(EventData));
     if (newNode == NULL) {
-        printf("Memory allocation failed\n");
         exit(1);
     }
     newNode->callType = (char*)malloc(strlen(callType) + 1);
     if (newNode->callType == NULL) {
-        printf("Memory allocation failed\n");
         exit(1);
     }
     strcpy(newNode->callType, callType);
@@ -46,6 +46,7 @@ EventData* createNode(char *callType) {
     return newNode;
 }
 
+// inserts a node into the end of the linked list
 void insertNode(EventData **head, EventData *newNode) {
     if (*head == NULL) {
         *head = newNode;
@@ -58,15 +59,8 @@ void insertNode(EventData **head, EventData *newNode) {
     }
 }
 
-int nodeCount(EventData *head){
-    int count =1;
-    while(head->next != NULL){
-        count++;
-        head = head->next;
-    }
-    return count;
-}
 
+// just copys node_a data into temp and swap a->b temp -> b
 void swapNode(EventData *a, EventData *b) {
     char *tempCallType = a->callType;
     int tempTotalCalls = a->totalCalls;
@@ -111,6 +105,7 @@ void swapNode(EventData *a, EventData *b) {
     memcpy(b->SubVal3OnTime, tempSubVal3OnTime, sizeof(int) * 4);
 }
 
+// this is using bubble sort
 void sortNodes(EventData *head) {
     if (head == NULL || head->next == NULL)
         return;
@@ -139,6 +134,7 @@ void sortNodes(EventData *head) {
     }
 }
 
+// empty the linked list
 void freeList(EventData *head) {
     EventData *temp;
     while (head != NULL) {
@@ -151,7 +147,10 @@ void freeList(EventData *head) {
 //seperate the string and take the numbers into a array to calculate
 //01/06/2016 08:46:50 PM
 
-
+// this uses strtok_r to sperate the delimiters " /:" so we get the month, 
+// day, year , hour, min, secs of each day and multiply that by the seconds
+// in each of those then get the difference of them.
+// special case for 12AM and hours after 12PM
 int timeDifference(const char *time1, const char *time2)
 {
     // Initialize variables to store date and time components
@@ -216,8 +215,11 @@ int timeDifference(const char *time1, const char *time2)
     }
 
     // Calculate the time difference
-    int totalSec1 = sec1 + min1 * SECONDS_MIN + hour1 * SECONDS_HOUR + day1 * SECONDS_DAY + month1 * SECONDS_MONTH + year1 * SECONDS_YEAR;
-    int totalSec2 = sec2 + min2 * SECONDS_MIN + hour2 * SECONDS_HOUR + day2 * SECONDS_DAY + month2 * SECONDS_MONTH + year2 * SECONDS_YEAR;
+    int totalSec1 = sec1 + min1 * SECONDS_MIN + hour1 * SECONDS_HOUR + 
+    day1 * SECONDS_DAY + month1 * SECONDS_MONTH + year1 * SECONDS_YEAR;
+
+    int totalSec2 = sec2 + min2 * SECONDS_MIN + hour2 * SECONDS_HOUR + 
+    day2 * SECONDS_DAY + month2 * SECONDS_MONTH + year2 * SECONDS_YEAR;
 
     // Free the allocated memory
     free(time1Copy);

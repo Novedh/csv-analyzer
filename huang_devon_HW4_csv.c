@@ -24,13 +24,16 @@
 #include <stdlib.h> 
 #include <string.h>
 #include <assignment4.h>
+#include <pthread.h>
 
-
+pthread_mutex_t prevmutex;
 FILE *file;
 int lineNum = 0;
 char **header;
 int colms;
-char **prev_row = NULL;
+char **prevRow = NULL;
+
+
 
 char ** csvopen (char * filename){
     file = fopen(filename, "r");
@@ -174,14 +177,21 @@ char ** csvnext (){
         buffer[lenBuffer+lenTempBuffer] = '\0';
         
     }
-    if (prev_row != NULL)
-    {
-        for (int i = 0; i < colms; i++)
-        {
-            free(prev_row[i]);
-        }
-        free(prev_row);
-    }
+    // DIDNT WORK
+    // Locked so multiple threads wouldnt be accessing/ freeing pre_row
+    // becasue it is global
+    // i am trying to using prevRow to clear some memory 
+    // pthread_mutex_lock(&prevmutex);
+    
+    // if (prevRow != NULL)
+    // {
+    //     for (int i = 0; i < colms; i++)
+    //     {
+    //         free(prevRow[i]);
+    //     }
+    //     free(prevRow);
+        
+    // }
 
     // Allocate memory for the row data
     char **row = (char **)malloc((colms) * sizeof(char *));
@@ -253,7 +263,9 @@ char ** csvnext (){
     row[row_index] = '\0'; // Null-terminate the row array
     // keeping track of how many lines are read for our csvclose to return
     lineNum++;
-    prev_row = row;
+    // DIDNT WORK
+    // prevRow = row;
+    // pthread_mutex_unlock(&prevmutex);
     return row;    
 }
 

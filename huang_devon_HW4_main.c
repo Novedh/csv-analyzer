@@ -22,80 +22,40 @@
 #include "huang_devon_HW4_func.c"
 
 pthread_mutex_t mutex;
+EventData *head = NULL;
 
-void *routine(){
+void *routine(void *arg){
+    void **args = (void **)arg;
+    int colms = *((int *)args[1]);
+    int subfieldLoc = *((int *)args[2]);
+    char *subfield = (char *)args[3];
+    char *subVal1 = (char *)args[4];
+    char *subVal2 = (char *)args[5];
+    char *subVal3 = (char *)args[6];
 
-}
+    char** line;
+    char* lineCallType;
 
-
-int main (int argc, char *argv[])
+    pthread_mutex_lock(&mutex);
+    while ((line = csvnext()) != NULL)
     {
-    //***TO DO***  Look at arguments, initialize application
-    char ** header = csvopen (argv[1]);
-    int colms = 0;
-    while ((header[colms] != NULL) && (colms < 50)){
-        ++colms;
-    }
-	//Law100K.csv 1 police_district(26) BAYVIEW MISSION TENDERLOIN
-    //13 : call_type_final_desc
-    //10 : call_type_original_desc
 
-    //25 : analysis_neighborhood
-    //26 : police_district
-
-    //03 : received_datetime
-    //05 : dispatch_datetime
-    //06 : enroute_datetime
-    //07 : onscene_datetime
-
-    int threads = atoi(argv[2]);
-    char *subfield = argv[3];
-    char *subVal1 = argv[4];
-    char *subVal2 = argv[5];
-    char *subVal3 = argv[6];
-    char **line = csvnext();
-    int subfieldLoc = 0;
-    char *lineCallType;
-    EventData *head = NULL;
-
-    // this is to find which subfield the user choose, police district or neighborhood
-    for(int i =0; i<colms; i++){
-         if (strcmp(header[i], subfield) == 0) {
-            subfieldLoc = i;
-            break; 
-        }
-    }
-
-    //**************************************************************
-    // DO NOT CHANGE THIS BLOCK
-    //Time stamp start
-    struct timespec startTime;
-    struct timespec endTime;
-
-    clock_gettime(CLOCK_REALTIME, &startTime);
-    //**************************************************************
-    
-    // *** TO DO ***  start your thread processing
-    //                wait for the threads to finish
-    
-
-    
-    while((line = csvnext())!= NULL){
-
-        
         int callFound = 0;
         // use line 13 for call type unless its empty then use 10
-        if (!(strcmp(line[13], "") == 0)){
+        if (!(strcmp(line[13], "") == 0))
+        {
             lineCallType = line[13];
         }
-        else{
+        else
+        {
             lineCallType = line[10];
         }
-        if (head == NULL){
+        if (head == NULL)
+        {
             EventData *newNode = createNode(lineCallType);
             insertNode(&head, newNode);
         }
-         
+
         EventData *headptr = head;
         // make sure that the none of the times are empty, if they are ignore data
         if (!(strcmp(line[3], "") == 0) && !(strcmp(line[5], "") == 0) &&
@@ -106,211 +66,269 @@ int main (int argc, char *argv[])
 
             // iterates through every Node in the list and if the callType matches
             // it increments totalCalls if the call is found stop loop to save time
-            while (headptr != NULL && callFound == 0 ){
-                if (strcmp(headptr->callType, lineCallType) == 0){
+            while (headptr != NULL && callFound == 0)
+            {
+                if (strcmp(headptr->callType, lineCallType) == 0)
+                {
                     callFound = 1;
-                    
-                    
-                    
-                        headptr->totalCalls++;
 
-                        if(timeDiffDis< 120){
-                            headptr->dispatchTimes[0]++;
-                        }
-                        else if (timeDiffDis>=120 && timeDiffDis <= 300){
-                            headptr->dispatchTimes[1]++;
-                        }
-                        else if (timeDiffDis > 300 && timeDiffDis <= 600){
-                            headptr->dispatchTimes[2]++;
-                        }
-                        else{
-                            headptr->dispatchTimes[3]++;
-                        }
+                    headptr->totalCalls++;
 
-                        if (timeDiffOn < 120){
-                            headptr->onSceneTimes[0]++;
-                        }
-                        else if (timeDiffOn >= 120 && timeDiffDis <= 300){
-                            headptr->onSceneTimes[1]++;
-                        }
-                        else if (timeDiffOn > 300 && timeDiffDis <= 600){
-                            headptr->onSceneTimes[2]++;
-                        }
-                        else{
-                            headptr->onSceneTimes[3]++;
-                        }
-                        // for each subfield value we are tracking we increment it 
-                        // based off on the time in seconds
-                        if (strcmp(line[subfieldLoc], subVal1) == 0){
-                            if (timeDiffDis < 120){
-                                headptr->subVal1DisTime[0]++;
-                            }
-                            else if (timeDiffDis >=120 && timeDiffDis <= 300){
-                                headptr->subVal1DisTime[1]++;
-                            }
-                            else if (timeDiffDis > 300 && timeDiffDis <= 600){
-                                headptr->subVal1DisTime[2]++;
-                            }
-                            else{
-                                headptr->subVal1DisTime[3]++;
-                            }
+                    if (timeDiffDis < 120)
+                    {
+                        headptr->dispatchTimes[0]++;
+                    }
+                    else if (timeDiffDis >= 120 && timeDiffDis <= 300)
+                    {
+                        headptr->dispatchTimes[1]++;
+                    }
+                    else if (timeDiffDis > 300 && timeDiffDis <= 600)
+                    {
+                        headptr->dispatchTimes[2]++;
+                    }
+                    else
+                    {
+                        headptr->dispatchTimes[3]++;
+                    }
 
-                            if (timeDiffOn < 120){
-                                headptr->SubVal1OnTime[0]++;
-                            }
-                            else if (timeDiffOn >=120 && timeDiffDis <= 300){
-                                headptr->SubVal1OnTime[1]++;
-                            }
-                            else if (timeDiffOn > 300 && timeDiffDis <= 600){
-                                headptr->SubVal1OnTime[2]++;
-                            }
-                            else{
-                                headptr->SubVal1OnTime[3]++;
-                            }
-                        }
-                        if (strcmp(line[subfieldLoc], subVal2) == 0)
+                    if (timeDiffOn < 120)
+                    {
+                        headptr->onSceneTimes[0]++;
+                    }
+                    else if (timeDiffOn >= 120 && timeDiffDis <= 300)
+                    {
+                        headptr->onSceneTimes[1]++;
+                    }
+                    else if (timeDiffOn > 300 && timeDiffDis <= 600)
+                    {
+                        headptr->onSceneTimes[2]++;
+                    }
+                    else
+                    {
+                        headptr->onSceneTimes[3]++;
+                    }
+                    // for each subfield value we are tracking we increment it
+                    // based off on the time in seconds
+                    if (strcmp(line[subfieldLoc], subVal1) == 0)
+                    {
+                        if (timeDiffDis < 120)
                         {
-                            if (timeDiffDis < 120){
-                                headptr->subVal2DisTime[0]++;
-                            }
-                            else if (timeDiffDis >=120 && timeDiffDis <= 300){
-                                headptr->subVal2DisTime[1]++;
-                            }
-                            else if (timeDiffDis > 300 && timeDiffDis <= 600){
-                                headptr->subVal2DisTime[2]++;
-                            }
-                            else{
-                                headptr->subVal2DisTime[3]++;
-                            }
-
-                            if (timeDiffOn < 120){
-                                headptr->SubVal2OnTime[0]++;
-                            }
-                            else if (timeDiffOn >=120 && timeDiffDis <= 300){
-                                headptr->SubVal2OnTime[1]++;
-                            }
-                            else if (timeDiffOn > 300 && timeDiffDis <= 600){
-                                headptr->SubVal2OnTime[2]++;
-                            }
-                            else{
-                                headptr->SubVal2OnTime[3]++;
-                            }
+                            headptr->subVal1DisTime[0]++;
                         }
-                        if (strcmp(line[subfieldLoc], subVal3) == 0)
+                        else if (timeDiffDis >= 120 && timeDiffDis <= 300)
                         {
-                            if (timeDiffDis < 120){
-                                headptr->subVal3DisTime[0]++;
-                            }
-                            else if (timeDiffDis >=120 && timeDiffDis <= 300){
-                                headptr->subVal3DisTime[1]++;
-                            }
-                            else if (timeDiffDis > 300 && timeDiffDis <= 600){
-                                headptr->subVal3DisTime[2]++;
-                            }
-                            else{
-                                headptr->subVal3DisTime[3]++;
-                            }
-
-                            if (timeDiffOn < 120){
-                                headptr->SubVal3OnTime[0]++;
-                            }
-                            else if (timeDiffOn >=120 && timeDiffDis <= 300){
-                                headptr->SubVal3OnTime[1]++;
-                            }
-                            else if (timeDiffOn > 300 && timeDiffDis <= 600){
-                                headptr->SubVal3OnTime[2]++;
-                            }
-                            else{
-                                headptr->SubVal3OnTime[3]++;
-                            }
+                            headptr->subVal1DisTime[1]++;
+                        }
+                        else if (timeDiffDis > 300 && timeDiffDis <= 600)
+                        {
+                            headptr->subVal1DisTime[2]++;
+                        }
+                        else
+                        {
+                            headptr->subVal1DisTime[3]++;
                         }
 
-                    
+                        if (timeDiffOn < 120)
+                        {
+                            headptr->SubVal1OnTime[0]++;
+                        }
+                        else if (timeDiffOn >= 120 && timeDiffDis <= 300)
+                        {
+                            headptr->SubVal1OnTime[1]++;
+                        }
+                        else if (timeDiffOn > 300 && timeDiffDis <= 600)
+                        {
+                            headptr->SubVal1OnTime[2]++;
+                        }
+                        else
+                        {
+                            headptr->SubVal1OnTime[3]++;
+                        }
+                    }
+                    if (strcmp(line[subfieldLoc], subVal2) == 0)
+                    {
+                        if (timeDiffDis < 120)
+                        {
+                            headptr->subVal2DisTime[0]++;
+                        }
+                        else if (timeDiffDis >= 120 && timeDiffDis <= 300)
+                        {
+                            headptr->subVal2DisTime[1]++;
+                        }
+                        else if (timeDiffDis > 300 && timeDiffDis <= 600)
+                        {
+                            headptr->subVal2DisTime[2]++;
+                        }
+                        else
+                        {
+                            headptr->subVal2DisTime[3]++;
+                        }
+
+                        if (timeDiffOn < 120)
+                        {
+                            headptr->SubVal2OnTime[0]++;
+                        }
+                        else if (timeDiffOn >= 120 && timeDiffDis <= 300)
+                        {
+                            headptr->SubVal2OnTime[1]++;
+                        }
+                        else if (timeDiffOn > 300 && timeDiffDis <= 600)
+                        {
+                            headptr->SubVal2OnTime[2]++;
+                        }
+                        else
+                        {
+                            headptr->SubVal2OnTime[3]++;
+                        }
+                    }
+                    if (strcmp(line[subfieldLoc], subVal3) == 0)
+                    {
+                        if (timeDiffDis < 120)
+                        {
+                            headptr->subVal3DisTime[0]++;
+                        }
+                        else if (timeDiffDis >= 120 && timeDiffDis <= 300)
+                        {
+                            headptr->subVal3DisTime[1]++;
+                        }
+                        else if (timeDiffDis > 300 && timeDiffDis <= 600)
+                        {
+                            headptr->subVal3DisTime[2]++;
+                        }
+                        else
+                        {
+                            headptr->subVal3DisTime[3]++;
+                        }
+
+                        if (timeDiffOn < 120)
+                        {
+                            headptr->SubVal3OnTime[0]++;
+                        }
+                        else if (timeDiffOn >= 120 && timeDiffDis <= 300)
+                        {
+                            headptr->SubVal3OnTime[1]++;
+                        }
+                        else if (timeDiffOn > 300 && timeDiffDis <= 600)
+                        {
+                            headptr->SubVal3OnTime[2]++;
+                        }
+                        else
+                        {
+                            headptr->SubVal3OnTime[3]++;
+                        }
+                    }
                 }
                 headptr = headptr->next;
             }
-            if (callFound == 0){
+            if (callFound == 0)
+            {
                 EventData *newNode = createNode(lineCallType);
                 insertNode(&head, newNode);
                 newNode->totalCalls++;
-                // repeating the same time incrementations based on 
+                // repeating the same time incrementations based on
                 // the difference of time for the first node that gets added in
-                if (timeDiffDis < 120){
+                if (timeDiffDis < 120)
+                {
                     newNode->dispatchTimes[0]++;
                 }
-                else if (timeDiffDis >= 120 && timeDiffDis <= 300){
+                else if (timeDiffDis >= 120 && timeDiffDis <= 300)
+                {
                     newNode->dispatchTimes[1]++;
                 }
-                else if (timeDiffDis > 300 && timeDiffDis <= 600){
+                else if (timeDiffDis > 300 && timeDiffDis <= 600)
+                {
                     newNode->dispatchTimes[2]++;
                 }
-                else{
+                else
+                {
                     newNode->dispatchTimes[3]++;
                 }
 
-                if (timeDiffOn < 120){
+                if (timeDiffOn < 120)
+                {
                     newNode->onSceneTimes[0]++;
                 }
-                else if (timeDiffOn >= 120 && timeDiffDis <= 300){
+                else if (timeDiffOn >= 120 && timeDiffDis <= 300)
+                {
                     newNode->onSceneTimes[1]++;
                 }
-                else if (timeDiffOn > 300 && timeDiffDis <= 600){
+                else if (timeDiffOn > 300 && timeDiffDis <= 600)
+                {
                     newNode->onSceneTimes[2]++;
                 }
-                else{
+                else
+                {
                     newNode->onSceneTimes[3]++;
                 }
-                if (strcmp(line[subfieldLoc], subVal1) == 0){
-                    if (timeDiffDis < 120){
+                if (strcmp(line[subfieldLoc], subVal1) == 0)
+                {
+                    if (timeDiffDis < 120)
+                    {
                         newNode->subVal1DisTime[0]++;
                     }
-                    else if (timeDiffDis >= 120 && timeDiffDis <= 300){
+                    else if (timeDiffDis >= 120 && timeDiffDis <= 300)
+                    {
                         newNode->subVal1DisTime[1]++;
                     }
-                    else if (timeDiffDis > 300 && timeDiffDis <= 600){
+                    else if (timeDiffDis > 300 && timeDiffDis <= 600)
+                    {
                         newNode->subVal1DisTime[2]++;
                     }
-                    else{
+                    else
+                    {
                         newNode->subVal1DisTime[3]++;
                     }
 
-                    if (timeDiffOn < 120){
+                    if (timeDiffOn < 120)
+                    {
                         newNode->SubVal1OnTime[0]++;
                     }
-                    else if (timeDiffOn >= 120 && timeDiffDis <= 300){
+                    else if (timeDiffOn >= 120 && timeDiffDis <= 300)
+                    {
                         newNode->SubVal1OnTime[1]++;
                     }
-                    else if (timeDiffOn > 300 && timeDiffDis <= 600){
+                    else if (timeDiffOn > 300 && timeDiffDis <= 600)
+                    {
                         newNode->SubVal1OnTime[2]++;
                     }
-                    else{
+                    else
+                    {
                         newNode->SubVal1OnTime[3]++;
                     }
                 }
-                if (strcmp(line[subfieldLoc], subVal2) == 0){
-                    if (timeDiffDis < 120){
+                if (strcmp(line[subfieldLoc], subVal2) == 0)
+                {
+                    if (timeDiffDis < 120)
+                    {
                         newNode->subVal2DisTime[0]++;
                     }
-                    else if (timeDiffDis >= 120 && timeDiffDis <= 300){
+                    else if (timeDiffDis >= 120 && timeDiffDis <= 300)
+                    {
                         newNode->subVal2DisTime[1]++;
                     }
-                    else if (timeDiffDis > 300 && timeDiffDis <= 600){
+                    else if (timeDiffDis > 300 && timeDiffDis <= 600)
+                    {
                         newNode->subVal2DisTime[2]++;
                     }
-                    else{
+                    else
+                    {
                         newNode->subVal2DisTime[3]++;
                     }
 
-                    if (timeDiffOn < 120){
+                    if (timeDiffOn < 120)
+                    {
                         newNode->SubVal2OnTime[0]++;
                     }
-                    else if (timeDiffOn >= 120 && timeDiffDis <= 300){
+                    else if (timeDiffOn >= 120 && timeDiffDis <= 300)
+                    {
                         newNode->SubVal2OnTime[1]++;
                     }
-                    else if (timeDiffOn > 300 && timeDiffDis <= 600){
+                    else if (timeDiffOn > 300 && timeDiffDis <= 600)
+                    {
                         newNode->SubVal2OnTime[2]++;
                     }
-                    else{
+                    else
+                    {
                         newNode->SubVal2OnTime[3]++;
                     }
                 }
@@ -352,8 +370,72 @@ int main (int argc, char *argv[])
                 }
             }
         }
+        pthread_mutex_unlock(&mutex);
     }
+    pthread_mutex_unlock(&mutex);
+    pthread_exit(NULL);
+}
+
+
+int main (int argc, char *argv[])
+    {
+    //***TO DO***  Look at arguments, initialize application
+
     
+    int threadCount = atoi(argv[2]);
+    char *subfield = argv[3];
+    char *subVal1 = argv[4];
+    char *subVal2 = argv[5];
+    char *subVal3 = argv[6];
+    char **line = csvnext();
+    int subfieldLoc = 0;
+    
+
+    // to get a count on how many columns is in the csv
+    char **header = csvopen(argv[1]);
+    int colms = 0;
+    while ((header[colms] != NULL) && (colms < 50))
+    {
+        ++colms;
+    }
+
+    // this is to find which subfield the user choose, police district or neighborhood
+    for(int i =0; i<colms; i++){
+         if (strcmp(header[i], subfield) == 0) {
+            subfieldLoc = i;
+            break; 
+        }
+    }
+
+    //**************************************************************
+    // DO NOT CHANGE THIS BLOCK
+    //Time stamp start
+    struct timespec startTime;
+    struct timespec endTime;
+
+    clock_gettime(CLOCK_REALTIME, &startTime);
+    //**************************************************************
+    
+    // *** TO DO ***  start your thread processing
+    //                wait for the threads to finish
+
+    void *args[] = {head, &colms, &subfieldLoc, subfield,
+                    subVal1, subVal2, subVal3};
+
+    pthread_mutex_init(&mutex, NULL);
+
+    pthread_t threads[threadCount];
+
+    for (int i = 0; i < threadCount; i++)
+    {
+        pthread_create(&threads[i], NULL, routine, args);
+    }
+
+    for (int i = 0; i < threadCount; i++)
+    {
+        pthread_join(threads[i], NULL);
+    }
+
     // ***TO DO *** Display Data
     char * times =(" <2  | 3-5 | 6-10 | >10  ");
     printf("%32s|%20s%5s|%20s%5s|%20s%5s|%20s%5s|%20s%5s|%20s%5s|%20s%5s|%20s%5s|\n"
@@ -409,6 +491,8 @@ int main (int argc, char *argv[])
 
     // ***TO DO *** cleanup
     csvclose();
-    
+    freeList(head);
+    pthread_mutex_destroy(&mutex);
+
     }
 
