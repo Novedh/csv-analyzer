@@ -50,7 +50,8 @@ void *routine(void *arg){
     char* lineCallType;
 
     
-    
+    // each thread is requesting the next record processing it and tallying
+    // to the linked list
     while ((line = csvnext()) != NULL)
     {
         pthread_mutex_lock(&mutex);
