@@ -1,5 +1,5 @@
 /**************************************************************
- * Class::  CSC-415-0# Spring 2024
+ * Class::  CSC-415-01 Spring 2024
  * Name::Devon Huang
  * Student ID::916940666
  * GitHub-Name::Novedh
@@ -12,13 +12,8 @@
  * then one that loaded in the next line in the csv.
  *
  **************************************************************/
-// ~issues was allocating cvsnext not dynamacally
-// ~issues was double quotes
-// ~imbedded \n - keep runing fgets and appending the buffer with 
-// the new one until "'s were even meaning they clsoed
-// ~issue running the full size - store last row of csvnext in a global and free
-// it the next time it ran
-//
+
+
 
 #include <stdio.h> 
 #include <stdlib.h> 

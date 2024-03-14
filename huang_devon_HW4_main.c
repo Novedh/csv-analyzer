@@ -1,15 +1,18 @@
 /**************************************************************
-* Class::  CSC-415-01 Spring 2024
-* Name::Devon Huang
-* Student ID::916940666
-* GitHub-Name::Novedh
-* Project:: Assignment 4 – Processing CSV Data with Threads
-*
-* File:: huang_devon_HW4_main.c
-*
-* Description::
-*
-**************************************************************/
+ * Class::  CSC-415-01 Spring 2024
+ * Name::Devon Huang
+ * Student ID::916940666
+ * GitHub-Name::Novedh
+ * Project:: Assignment 4 – Processing CSV Data with Threads
+ *
+ * File:: huang_devon_HW4_main.c
+ *
+ * Description:: using thread to request the next record of the csv file 
+ * and process it, returning it’s results tallied to shared memory and then 
+ * prints the results of each call type with the time it takes to process the 
+ * csv with threads.
+ *
+ **************************************************************/
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <fcntl.h>
@@ -24,6 +27,16 @@
 pthread_mutex_t mutex;
 EventData *head = NULL;
 
+// from CSVTest.c
+void releaseData(char *vector[], int count)
+{
+    for (int i = 0; i < count; i++)
+    {
+        free(vector[i]);
+    }
+    free(vector);
+}
+
 void *routine(void *arg){
     void **args = (void **)arg;
     int colms = *((int *)args[1]);
@@ -36,9 +49,11 @@ void *routine(void *arg){
     char** line;
     char* lineCallType;
 
-    pthread_mutex_lock(&mutex);
+    
+    
     while ((line = csvnext()) != NULL)
     {
+        pthread_mutex_lock(&mutex);
 
         int callFound = 0;
         // use line 13 for call type unless its empty then use 10
@@ -57,12 +72,16 @@ void *routine(void *arg){
         }
 
         EventData *headptr = head;
+        pthread_mutex_unlock(&mutex);
         // make sure that the none of the times are empty, if they are ignore data
         if (!(strcmp(line[3], "") == 0) && !(strcmp(line[5], "") == 0) &&
             !(strcmp(line[6], "") == 0) && !(strcmp(line[7], "") == 0))
         {
+            
             int timeDiffDis = timeDifference(line[3], line[5]);
             int timeDiffOn = timeDifference(line[6], line[7]);
+            
+            
 
             // iterates through every Node in the list and if the callType matches
             // it increments totalCalls if the call is found stop loop to save time
@@ -108,7 +127,7 @@ void *routine(void *arg){
                         headptr->onSceneTimes[3]++;
                     }
                     // for each subfield value we are tracking we increment it
-                    // based off on the time in seconds
+                    // based off on the time bracket in seconds
                     if (strcmp(line[subfieldLoc], subVal1) == 0)
                     {
                         if (timeDiffDis < 120)
@@ -370,9 +389,10 @@ void *routine(void *arg){
                 }
             }
         }
-        pthread_mutex_unlock(&mutex);
+        
+        releaseData(line, colms);
     }
-    pthread_mutex_unlock(&mutex);
+
     pthread_exit(NULL);
 }
 
@@ -381,7 +401,6 @@ int main (int argc, char *argv[])
     {
     //***TO DO***  Look at arguments, initialize application
 
-    
     int threadCount = atoi(argv[2]);
     char *subfield = argv[3];
     char *subVal1 = argv[4];
@@ -419,20 +438,20 @@ int main (int argc, char *argv[])
     // *** TO DO ***  start your thread processing
     //                wait for the threads to finish
 
+    // the arguments each thread needs
     void *args[] = {head, &colms, &subfieldLoc, subfield,
                     subVal1, subVal2, subVal3};
 
     pthread_mutex_init(&mutex, NULL);
 
+    //create the threads we need according to the run options
     pthread_t threads[threadCount];
 
-    for (int i = 0; i < threadCount; i++)
-    {
+    for (int i = 0; i < threadCount; i++){
         pthread_create(&threads[i], NULL, routine, args);
     }
 
-    for (int i = 0; i < threadCount; i++)
-    {
+    for (int i = 0; i < threadCount; i++){
         pthread_join(threads[i], NULL);
     }
 
